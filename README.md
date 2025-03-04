@@ -16,7 +16,7 @@ This repo is for CPEN 455 course project 2024 Winter Term 2 at UBC. **The goal o
   - [Model Evaluation](#model-evaluation)
   - [Grading Rubric](#grading-rubric)
     - [Bonus Points:](#bonus-points)
-  - [Milestone and Grading](#milestone-and-grading)
+  - [Milestones](#milestones)
   - [Final project report guidelines](#final-project-report-guidelines)
     - [Report Length and Structure:](#report-length-and-structure)
     - [Model Presentation Tips:](#model-presentation-tips)
@@ -228,17 +228,15 @@ The final score is calculated based on Generation Performance, Classification Pe
 + **Generation Performance**  
   Evaluated using Fréchet Inception Distance (FID) score of generated images  
   - Lower FID scores correspond to better performance
-  - Linear interpolate the grades from 0 to full when the FID goes from 60 to 30:  
-    - 60 FID score = 0 points  
-    - 30 FID score = full score  
+  - Linear interpolate the grades from 0 to full when the FID goes from 60 to 30: 
+    - Score = (60 - FID score) / 30 * {full score}, when FID score is between 60 and 30
   - < 30 FID score = full score
   - \> 60 FID score = 0 points
 
 + **Classification Performance**  
   Evaluated using validation set accuracy (test set used for final grading)  
   - Linear interpolate the grades from 0 to full when the acc goes from 25% to 75%:  
-    - 25% accuracy (random classifier) = 0 points  
-    - 75% accuracy = full score  
+    - Score = (acc - 0.25) / 0.5 * {full score}, when acc is between 25% and 75%
   - Accuracy exceeding 75% qualifies for bonus points (see [Bonus Points section](#bonus-points))
 
 + **Report Quality**  
@@ -258,8 +256,8 @@ The final score is calculated based on Generation Performance, Classification Pe
   + Compare the performance of your model with dedicated classifiers (e.g., CNN-based classifiers) trained on the same dataset. Think about the advantages and disadvantages of your model compared with dedicated classifiers.
   + **Any exploration you made out of curiosity**
 
-## Milestone and Grading
-It's hard to give a detailed grading rubric and set some specific milestones for the project, because each part of the entire project is closely related to each other. Once you implement the conditional insertion into the model, the remaining parts are more or less straightforward.
+## Milestones
+It's hard to set some specific milestones for the project, because each part of the entire project is closely related to each other. Once you implement the conditional insertion into the model, the remaining parts are more or less straightforward.
 
 However, **if you are too busy to implement the entire project or find this project too challenging**, you can still get partial marks by completing some basic tasks, for example:
 
