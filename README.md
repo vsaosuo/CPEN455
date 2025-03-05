@@ -26,13 +26,13 @@ This repo is for CPEN 455 course project 2024 Winter Term 2 at UBC. **The goal o
 
 ## Project Introduction
 
-PixelCNN++ is a powerful generative model with tractable likelihood. It models the joint distribution of pixels over an image x as the following product of conditional distributions.
+PixelCNN++ is a powerful generative model with tractable likelihood. It models the joint distribution of pixels over an image $x$ as the following product of conditional distributions.
 
 <img src="https://cdn-uploads.huggingface.co/production/uploads/65000e786a230e55a65c45ad/-jZg8HEMyFnpduNsi-Alt.png" width = "500" align="center"/>
 
-where x_i is a single pixel.
+where $x_i$ is a single pixel.
 
-Given a class embedding c, PixelCNN++ can be extended to conditional generative tasks following:
+Given a class embedding $c$, PixelCNN++ can be extended to conditional generative tasks following:
 
 <img src="https://cdn-uploads.huggingface.co/production/uploads/65000e786a230e55a65c45ad/_jv7O2Z_1s1oYLXjIqS1V.png" width = "260" align="center"/>
 
@@ -193,23 +193,22 @@ id, label
 ## Submission Requirements:
 You must compress the following materials into a zip file and submit it on Canvas:
 
-- **Complete project code**
-  - **Implement two evaluation scripts**:
-    - `generation_evaluation.py`: 
+- [ ] **Complete project code**
+  - [ ] **Implement two evaluation scripts**:
+    - [ ] `generation_evaluation.py`: 
       - Save generated images to `./samples` directory
       - Include 100 total images (25 per class across 4 classes)
       - Detailed instructions are introduced in [generation_evaluation.py](generation_evaluation.py)
-    - `classification_evaluation.py`:
+    - [ ] `classification_evaluation.py`:
       - Evaluate model accuracy on validation set
       - Maintain original code interfaces (we will test using the test set)
       - Detailed instructions are introduced in [classification_evaluation.py](classification_evaluation.py)
-    - **Important**: Please DO NOT change any other definitions in the two interfaces `generation_evaluation.py` and `classification_evaluation.py`. All you can modify is within "begin of your code" and "end of your code". As for other parts of this repo, you can modify them arbitrarily.
     - **Important**: Avoid attempts to circumvent proper evaluation. Submissions that generate invalid samples or fail classification tasks while containing deceptive code **will receive penalties**. If struggling with implementation, refer to [Milestone and Grading](#milestone-and-grading) for partial credit options rather than non-functional workarounds.
-  
-  - **Model checkpoint**:
+    - **Important**: Please DO NOT change any other definitions in the two interfaces `generation_evaluation.py` and `classification_evaluation.py`. All you can modify is within "begin of your code" and "end of your code". As for other parts of this repo, you can modify them arbitrarily.
+  - [ ] **Model checkpoint**:
     - Save to `models/conditional_pixelcnn.pth`
 
-- **Project report**
+- [ ] **Project report**
   - The requirement is introduced in [Final project report guidelines](#final-project-report-guidelines)
 
 ## Model Evaluation
@@ -229,14 +228,14 @@ The final score is calculated based on Generation Performance, Classification Pe
   Evaluated using Fréchet Inception Distance (FID) score of generated images  
   - Lower FID scores correspond to better performance
   - Linear interpolate the grades from 0 to full when the FID goes from 60 to 30: 
-    - Score = (60 - FID score) / 30 * {full score}, when FID score is between 60 and 30
-  - < 30 FID score = full score
+    - Score = (60 - FID score) / 30 * {full score of generation performance}, when FID score is between 60 and 30
+  - < 30 FID score = full score of generation performance
   - \> 60 FID score = 0 points
 
 + **Classification Performance**  
   Evaluated using validation set accuracy (test set used for final grading)  
   - Linear interpolate the grades from 0 to full when the acc goes from 25% to 75%:  
-    - Score = (acc - 0.25) / 0.5 * {full score}, when acc is between 25% and 75%
+    - Score = (acc - 0.25) / 0.5 * {full score of classification performance}, when acc is between 25% and 75%
   - Accuracy exceeding 75% qualifies for bonus points (see [Bonus Points section](#bonus-points))
 
 + **Report Quality**  
@@ -246,22 +245,21 @@ The final score is calculated based on Generation Performance, Classification Pe
   - See in [Bonus Points section](#bonus-points)
 
 ### Bonus Points:
-+ Earn 10% more marks if your model outperforms 75% accuracy on the test set.
-+ You may gain 10% more marks for conducting a detailed and interesting analysis of your model or generated results.
++ Earn **10% more marks of the full score of project(3% in whole course)** if your model outperforms 75% accuracy on the test set.
++ You may gain **10% more marks of the full score of project(3% in whole course)** for conducting a detailed and interesting analysis of your model or generated results.
 + Other Bonus Points/Questions:
   + Why do masked convolution layers ensure the autoregressive property of PixelCNN++?
   + Implement different fusion strategies in the architecture and compare their performance.
-  + Why is a mixture of logistics used in PixelCNN++? (hint: You will get the answer if you go through the sampling function, also the similar philosophy shared in deepseek-v2/v3)
-  + Read some papers and reproduce their methods for inserting conditions, comparing them with common fusion implementations.
+  + Why are the advantages of using a mixture of logistics used in PixelCNN++? (hint: You will get the answer if you go through the sampling function, also the similar philosophy shared in deepseek-v2/v3)
+  + Read papers and reproduce their methods for inserting conditions, comparing them with common fusion implementations.
   + Compare the performance of your model with dedicated classifiers (e.g., CNN-based classifiers) trained on the same dataset. Think about the advantages and disadvantages of your model compared with dedicated classifiers.
-  + **Any exploration you made out of curiosity**
 
 ## Milestones
 It's hard to set some specific milestones for the project, because each part of the entire project is closely related to each other. Once you implement the conditional insertion into the model, the remaining parts are more or less straightforward.
 
 However, **if you are too busy to implement the entire project or find this project too challenging**, you can still get partial marks by completing some basic tasks, for example:
 
-+ Properly install the dependencies, run the original PixelCNN++ code, and generate some images. Document your findings in the report.(10%)
++ Properly install the dependencies, run the original PixelCNN++ code, and generate some images. Document your findings in the report.(10% of the full score of project)
 + Introduce the PixelCNN++ model in detail within the report and describe your attempts to implement the conditional PixelCNN++ model. (Graded based on how detailed your description is of the concepts you've learned.)
 + Try to answer the [bonus questions](#bonus-points) mentioned previously. 
 
@@ -304,11 +302,6 @@ Violations of academic integrity will result in a grade of ZERO. These violation
 3. Deliberate attempts to manipulate the testing dataset in order to extract ground-truth labels or employ discriminative classifiers.
 4. Intentional submission of fabricated results to the competition leaderboard.
 5. Any form of academic dishonesty, such as sharing code, model checkpoints, or inference results with other students.
-
-Additionally, we request the following:
-
-1. **Retain both the logits and the final discrete labels from your classification results.** While logits are not used for evaluation, they may be requested during investigations of academic integrity.
-2. **Refrain from distributing any outputs** generated by your model, including, but not limited to, images or inferred probabilities from provided datasets.
 
 Adhering to these guidelines is crucial for maintaining a fair and honest academic environment. Thank you for your cooperation.
 
