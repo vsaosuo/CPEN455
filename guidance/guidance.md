@@ -253,7 +253,7 @@ class gated_resnet(nn.Module):
 Add the fusion condition to the output of the U-net.
 
 
-## Step 3: Training and Evaluating Unconditional PixelCNN++
+## Step 3: Training and Evaluating Conditional PixelCNN++
 
 ### 3.1 Training Process
 - Train the model for a sufficient number of epochs (depends on the model size and the dataset, you should monitor the training and validation BPD, and stop the training when the validation BPD is no longer decreasing).
