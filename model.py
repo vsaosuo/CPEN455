@@ -1,6 +1,6 @@
 import torch.nn as nn
 from layers import *
-
+from dataset import my_bidict
 
 class PixelCNNLayer_up(nn.Module):
     def __init__(self, nr_resnet, nr_filters, resnet_nonlinearity):
@@ -96,8 +96,18 @@ class PixelCNN(nn.Module):
         self.nin_out = nin(nr_filters, num_mix * nr_logistic_mix)
         self.init_padding = None
 
+        # changlog: added embedding layer
+        # Observation: since the u and ul streams use nr_filters, we can use that as the embedding dimension 
+        # to avoid dimension mismatch
+        self.embedding_dim = nr_filters 
+        self.embedding = nn.Embedding(len(my_bidict), self.embedding_dim) # [number of classes, embedding_dim]
 
-    def forward(self, x, sample=False):
+
+    def forward(self, x, labels, sample=False):
+        # changlog: convert labels to numbers
+        labels = [my_bidict.get(label) for label in labels]
+        labels = torch.tensor(labels).to(x.device)
+        
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]
@@ -124,6 +134,14 @@ class PixelCNN(nn.Module):
                 # downscale (only twice)
                 u_list  += [self.downsize_u_stream[i](u_list[-1])]
                 ul_list += [self.downsize_ul_stream[i](ul_list[-1])]
+
+        # changlog: adding embedding based on the labels
+        labels = self.embedding(labels)
+        labels = labels.view(labels.shape[0], labels.shape[1], 1, 1)
+
+        # Add middle fusion to the last skip connection (u and ul streams)
+        u_list[-1]  += labels
+        ul_list[-1] += labels
 
         ###    DOWN PASS    ###
         u  = u_list.pop()
