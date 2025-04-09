@@ -105,7 +105,7 @@ class PixelCNN(nn.Module):
 
     def forward(self, x, labels, sample=False):
         # changlog: convert labels to numbers
-        labels = [my_bidict.get(label) for label in labels]
+        labels = [my_bidict.get(label, 0) for label in labels]
         labels = torch.tensor(labels).to(x.device)
         
         # similar as done in the tf repo :

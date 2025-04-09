@@ -12,6 +12,7 @@ from tqdm import tqdm
 from pprint import pprint
 import argparse
 from pytorch_fid.fid_score import calculate_fid_given_paths
+from dataset import my_bidict
 
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
@@ -24,9 +25,8 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
     loss_tracker = mean_tracker()
     
     for batch_idx, item in enumerate(tqdm(data_loader)):
-        model_input, labels = item 
-        
         # changelog: add the label of the image to the model
+        model_input, labels = item
         model_input = model_input.to(device)
         model_output = model(model_input, labels)
         loss = loss_op(model_input, model_output)
@@ -224,24 +224,29 @@ if __name__ == '__main__':
                       mode = 'val')
         
         if epoch % args.sampling_interval == 0:
-            print('......sampling......')
-            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op)
-            sample_t = rescaling_inv(sample_t)
-            save_images(sample_t, args.sample_dir)
-            sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
-            
-            gen_data_dir = args.sample_dir
-            ref_data_dir = args.data_dir +'/test'
-            paths = [gen_data_dir, ref_data_dir]
-            try:
-                fid_score = calculate_fid_given_paths(paths, 32, device, dims=192)
-                print("Dimension {:d} works! fid score: {}".format(192, fid_score))
-            except:
-                print("Dimension {:d} fails!".format(192))
+            for key in my_bidict.keys():
                 
-            if args.en_wandb:
-                wandb.log({"samples": sample_result,
-                            "FID": fid_score})
+                # changelog: add the label of the image for sampling
+                print(f'......sampling {key}......')
+                labels = [my_bidict.get(key, 0)] * args.sample_batch_size
+
+                sample_t = sample(model, args.sample_batch_size, args.obs, sample_op, labels)
+                sample_t = rescaling_inv(sample_t)
+                save_images(sample_t, args.sample_dir, f"{key}_epoch{epoch}")
+                sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
+                
+                gen_data_dir = args.sample_dir
+                ref_data_dir = args.data_dir +'/test'
+                paths = [gen_data_dir, ref_data_dir]
+                try:
+                    fid_score = calculate_fid_given_paths(paths, 32, device, dims=192)
+                    print("Dimension {:d} works! fid score: {}".format(192, fid_score))
+                except:
+                    print("Dimension {:d} fails!".format(192))
+                    
+                if args.en_wandb:
+                    wandb.log({"samples": sample_result,
+                                "FID": fid_score})
         
         if (epoch + 1) % args.save_interval == 0: 
             if not os.path.exists("models"):
