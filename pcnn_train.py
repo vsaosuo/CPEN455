@@ -121,6 +121,7 @@ if __name__ == '__main__':
 
     #set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print('Using device:', device)
     #Reminder: if you have patience to read code line by line, you should notice this comment. here is the reason why we set num_workers to 0:
     #In order to avoid pickling errors with the dataset on different machines, we set num_workers to 0.
     #If you are using ubuntu/linux/colab, and find that loading data is too slow, you can set num_workers to 1 or even bigger.
