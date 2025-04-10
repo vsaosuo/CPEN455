@@ -14,9 +14,10 @@ import argparse
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from dataset import my_bidict
 
+NUM_EPOCHS_SAMPLE_ACCURACY = 5
 # changelog: add the get accuracy function
 # Note: this function is derived from the get_label function in classification_evaluation.py
-def get_accuracy(model_input, generated_image, original_label, device):
+def get_label(model, model_input, device):
     # Write your code here, replace the random classifier with your trained model
     # and return the predicted label, which is a tensor of shape (batch_size,)
     batch_size = model_input.shape[0]
@@ -27,6 +28,11 @@ def get_accuracy(model_input, generated_image, original_label, device):
     # Since we assume a uniform prior (which is the P(class) term), 
     # we only need to worry about maximizing the P(image|class) term.
     for key in my_bidict.keys():
+        labels = [key] * batch_size
+        
+        # Get the predicted image from the model
+        generated_image = model(x=model_input, labels=labels)
+
         # Compute the log-likelihood of the generated image (i.e., P(image|class))
         # Note: this function is taken from pcnn_train.py
         loss_op = lambda real, fake : discretized_mix_logistic_loss_per_image(real, fake)
@@ -37,12 +43,10 @@ def get_accuracy(model_input, generated_image, original_label, device):
     
     # Since we dealing with nagative log-likelihood, we need to take the minizing of P(image|class)
     # to get the maximum likelihood
-    nag_log_likelihood_of_classes = torch.stack(nag_log_likelihood_of_classes, dim=1) #[batch_size, num_classes]
-    predicted_label = torch.argmin(nag_log_likelihood_of_classes, dim=1) # [batch_size] 
+    nag_log_likelihood_of_classes = torch.stack(nag_log_likelihood_of_classes, dim=1).to(device) #[batch_size, num_classes]
+    output = torch.argmin(nag_log_likelihood_of_classes, dim=1) # [batch_size] 
 
-    correct_num = torch.sum(predicted_label == original_label)
-
-    return correct_num
+    return output
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
     if mode == 'training':
@@ -65,17 +69,20 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        elif mode == 'val':
+        elif mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
             # changelog: add the label of the image for validation
-            original_label = [my_bidict[item] for item in labels]
+            original_label = [my_bidict.get(label, 0) for label in labels]
             original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
-            correct_num = get_accuracy(model_input, model_output, original_label, device)
+            answer = get_label(model, model_input, device)
+            correct_num = torch.sum(answer == original_label)
             acc_tracker.update(correct_num.item(), model_input.shape[0])
+            print("original_label: ", original_label)
+            print("answer: ", answer)
         
     if args.en_wandb:
         wandb.log({mode + "-Average-BPD" : loss_tracker.get_mean()})
         wandb.log({mode + "-epoch": epoch})
-        if mode == 'val':
+        if mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
             wandb.log({mode + "-Accuracy" : acc_tracker.get_ratio()})
 
 if __name__ == '__main__':
