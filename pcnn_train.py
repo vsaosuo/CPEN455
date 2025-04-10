@@ -69,21 +69,21 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        elif mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
-            # changelog: add the label of the image for validation
-            original_label = [my_bidict.get(label, 0) for label in labels]
-            original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
-            answer = get_label(model, model_input, device)
-            correct_num = torch.sum(answer == original_label)
-            acc_tracker.update(correct_num.item(), model_input.shape[0])
-            print("original_label: ", original_label)
-            print("answer: ", answer)
+        # elif mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
+        #     # changelog: add the label of the image for validation
+        #     original_label = [my_bidict.get(label, 0) for label in labels]
+        #     original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
+        #     answer = get_label(model, model_input, device)
+        #     correct_num = torch.sum(answer == original_label)
+        #     acc_tracker.update(correct_num.item(), model_input.shape[0])
+        #     print("original_label: ", original_label)
+        #     print("answer: ", answer)
         
     if args.en_wandb:
         wandb.log({mode + "-Average-BPD" : loss_tracker.get_mean()})
         wandb.log({mode + "-epoch": epoch})
-        if mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
-            wandb.log({mode + "-Accuracy" : acc_tracker.get_ratio()})
+        # if mode == 'val' and epoch % NUM_EPOCHS_SAMPLE_ACCURACY == 0:
+        #     wandb.log({mode + "-Accuracy" : acc_tracker.get_ratio()})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
