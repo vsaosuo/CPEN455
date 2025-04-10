@@ -105,9 +105,10 @@ class PixelCNN(nn.Module):
 
     def forward(self, x, labels, sample=False):
         # changlog: convert labels to numbers
+        # Original Model
         labels = [my_bidict.get(label, 0) for label in labels]
         labels = torch.tensor(labels).to(x.device)
-        
+
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]
@@ -140,9 +141,14 @@ class PixelCNN(nn.Module):
         labels = labels.view(labels.shape[0], labels.shape[1], 1, 1)
 
         # Add middle fusion to the last skip connection (u and ul streams)
-        u_list[-1]  += labels
-        ul_list[-1] += labels
+        # u_list[-1]  += labels
+        # ul_list[-1] += labels
 
+        # Experiment 2 - add embedding to all the skip connection as this will feed to each of the decoder
+        for i in range(len(u_list)):
+            u_list[i]  += labels
+            ul_list[i] += labels
+            
         ###    DOWN PASS    ###
         u  = u_list.pop()
         ul = ul_list.pop()
