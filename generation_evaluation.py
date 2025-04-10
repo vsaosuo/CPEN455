@@ -23,12 +23,14 @@ import argparse
 # You should save the generated images to the gen_data_dir, which is fixed as 'samples'
 sample_op = lambda x : sample_from_discretized_mix_logistic(x, 5)
 def my_sample(model, gen_data_dir, sample_batch_size = 25, obs = (3,32,32), sample_op = sample_op):
-    for label in my_bidict:
-        print(f"Label: {label}")
+    for key in my_bidict.keys():
+        print(f"Label: {key}")
+        labels = [key] * sample_batch_size
+
         #generate images for each label, each label has 25 images
-        sample_t = sample(model, sample_batch_size, obs, sample_op)
+        sample_t = sample(model, sample_batch_size, obs, sample_op, labels)
         sample_t = rescaling_inv(sample_t)
-        save_images(sample_t, os.path.join(gen_data_dir), label=label)
+        save_images(sample_t, os.path.join(gen_data_dir), label=key)
     pass
 # End of your code
 
@@ -49,8 +51,20 @@ if __name__ == "__main__":
 
     #TODO: Begin of your code
     #Load your model and generate images in the gen_data_dir, feel free to modify the model
-    model = PixelCNN(nr_resnet=1, nr_filters=40, input_channels=3, nr_logistic_mix=5)
+    model = PixelCNN(nr_resnet=1, nr_filters=40, nr_logistic_mix=5, input_channels=3)
     model = model.to(device)
+
+    # Load pretrained model
+    # Note: this code is copied from classification_evaluation.py
+    model_path = os.path.join(os.path.dirname(__file__), 'models/conditional_pixelcnn.pth')
+    if os.path.exists(model_path):
+        # TODO: Changed from original to fit with MAC
+        model.load_state_dict(torch.load(model_path))
+        # model.load_state_dict(torch.load(model_path, map_location=device))
+        print('model parameters loaded')
+    else:
+        raise FileNotFoundError(f"Model file not found at {model_path}")
+    
     model = model.eval()
     #End of your code
     

@@ -253,3 +253,8 @@ if __name__ == '__main__':
             if not os.path.exists("models"):
                 os.makedirs("models")
             torch.save(model.state_dict(), 'models/{}_{}.pth'.format(model_name, epoch))
+
+## Training Model
+# | Date       | Time     | Epoch | Train BPD | Test BPD  | Val BPD   | Run ID                        | Evalations (validation, FID) |
+# |------------|----------|-------|-----------|-----------|-----------|-------------------------------|------------------------------|
+# | 2024-04-09 | 5:16:10  | 500   | 3.17      | 3.03      | 3.04      | Fully-Trained-Middle-Fusion   | (0.6551, 24.2779)            |
