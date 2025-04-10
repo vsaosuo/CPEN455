@@ -14,6 +14,35 @@ import argparse
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from dataset import my_bidict
 
+# changelog: add the get accuracy function
+# Note: this function is derived from the get_label function in classification_evaluation.py
+def get_accuracy(model_input, generated_image, original_label, device):
+    # Write your code here, replace the random classifier with your trained model
+    # and return the predicted label, which is a tensor of shape (batch_size,)
+    batch_size = model_input.shape[0]
+
+    nag_log_likelihood_of_classes = []
+
+    # For P(class|image) = P(image|class) × P(class),
+    # Since we assume a uniform prior (which is the P(class) term), 
+    # we only need to worry about maximizing the P(image|class) term.
+    for key in my_bidict.keys():
+        # Compute the log-likelihood of the generated image (i.e., P(image|class))
+        # Note: this function is taken from pcnn_train.py
+        loss_op = lambda real, fake : discretized_mix_logistic_loss_per_image(real, fake)
+        neg_log_likelihood = loss_op(model_input, generated_image)
+
+        # Store the negative log-likelihood for the current class
+        nag_log_likelihood_of_classes.append(neg_log_likelihood)
+    
+    # Since we dealing with nagative log-likelihood, we need to take the minizing of P(image|class)
+    # to get the maximum likelihood
+    nag_log_likelihood_of_classes = torch.stack(nag_log_likelihood_of_classes, dim=1) #[batch_size, num_classes]
+    predicted_label = torch.argmin(nag_log_likelihood_of_classes, dim=1) # [batch_size] 
+
+    correct_num = torch.sum(predicted_label == original_label)
+
+    return correct_num
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
     if mode == 'training':
@@ -23,7 +52,8 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
         
     deno =  args.batch_size * np.prod(args.obs) * np.log(2.)        
     loss_tracker = mean_tracker()
-    
+    acc_tracker = ratio_tracker()
+
     for batch_idx, item in enumerate(tqdm(data_loader)):
         # changelog: add the label of the image to the model
         model_input, labels = item
@@ -35,10 +65,18 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+        elif mode == 'val':
+            # changelog: add the label of the image for validation
+            original_label = [my_bidict[item] for item in labels]
+            original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
+            correct_num = get_accuracy(model_input, model_output, original_label, device)
+            acc_tracker.update(correct_num.item(), model_input.shape[0])
         
     if args.en_wandb:
         wandb.log({mode + "-Average-BPD" : loss_tracker.get_mean()})
         wandb.log({mode + "-epoch": epoch})
+        if mode == 'val':
+            wandb.log({mode + "-Accuracy" : acc_tracker.get_ratio()})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -229,12 +267,12 @@ if __name__ == '__main__':
                 
                 # changelog: add the label of the image for sampling
                 print(f'......sampling {key}......')
-                labels = [my_bidict.get(key, 0)] * args.sample_batch_size
+                labels = [key] * args.sample_batch_size
 
                 sample_t = sample(model, args.sample_batch_size, args.obs, sample_op, labels)
                 sample_t = rescaling_inv(sample_t)
                 save_images(sample_t, args.sample_dir, f"{key}_epoch{epoch}")
-                sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
+                sample_result = wandb.Image(sample_t, caption="key - {} - epoch {}".format(key, epoch))
                 
                 gen_data_dir = args.sample_dir
                 ref_data_dir = args.data_dir +'/test'
