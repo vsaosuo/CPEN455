@@ -140,7 +140,7 @@ class PixelCNN(nn.Module):
         labels = self.embedding(labels)
         labels = labels.view(labels.shape[0], labels.shape[1], 1, 1)
 
-        # Add middle fusion to the last skip connection (u and ul streams)
+        # Experimentt 1 - add middle fusion to the last skip connection (u and ul streams)
         # u_list[-1]  += labels
         # ul_list[-1] += labels
 
@@ -148,7 +148,7 @@ class PixelCNN(nn.Module):
         for i in range(len(u_list)):
             u_list[i]  += labels
             ul_list[i] += labels
-            
+
         ###    DOWN PASS    ###
         u  = u_list.pop()
         ul = ul_list.pop()

@@ -78,6 +78,8 @@ if __name__ == '__main__':
                         default=32, help='Batch size for inference')
     parser.add_argument('-m', '--mode', type=str,
                         default='validation', help='Mode for the dataset')
+    parser.add_argument('-md', '--model', type=str,
+                        default='models/conditional_pixelcnn.pth', help='Model to load')
     
     args = parser.parse_args()
     pprint(args.__dict__)
@@ -95,13 +97,14 @@ if __name__ == '__main__':
     #TODO:Begin of your code
     #You should replace the random classifier with your trained model
     # model = random_classifier(NUM_CLASSES)
-    model = PixelCNN(nr_resnet=1, nr_filters=40, nr_logistic_mix=5, input_channels=3)
+    model = PixelCNN(nr_resnet=5, nr_filters=160, nr_logistic_mix=10, input_channels=3)
     #End of your code
     
     model = model.to(device)
     #Attention: the path of the model is fixed to './models/conditional_pixelcnn.pth'
     #You should save your model to this path
-    model_path = os.path.join(os.path.dirname(__file__), 'models/conditional_pixelcnn.pth')
+    # TODO: change to original
+    model_path = os.path.join(os.path.dirname(__file__), args.model)
     if os.path.exists(model_path):
         # TODO: Changed from original to fit with MAC
         model.load_state_dict(torch.load(model_path))
@@ -113,5 +116,12 @@ if __name__ == '__main__':
     
     acc = classifier(model = model, data_loader = dataloader, device = device)
     print(f"Accuracy: {acc}")
-        
+    
+    # TODO: Save the accuracy to a csv file
+    with open('accuracy.csv', mode='a', newline='') as file:
+        writer = csv.writer(file)
+        # Only write headers if file is empty
+        if file.tell() == 0:
+            writer.writerow(['Model', 'Accuracy'])
+        writer.writerow([args.model, acc])
         

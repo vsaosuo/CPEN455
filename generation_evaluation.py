@@ -18,10 +18,11 @@ import os
 import torch
 import argparse
 #TODO: Begin of your code
+import csv
 # This is a demonstration of how to call the sample function, feel free to modify it
 # You should modify this sample function to get the generated images from your model
 # You should save the generated images to the gen_data_dir, which is fixed as 'samples'
-sample_op = lambda x : sample_from_discretized_mix_logistic(x, 5)
+sample_op = lambda x : sample_from_discretized_mix_logistic(x, 10) # 10 is the number of mixtures which follows nr_logistic_mix
 def my_sample(model, gen_data_dir, sample_batch_size = 25, obs = (3,32,32), sample_op = sample_op):
     for key in my_bidict.keys():
         print(f"Label: {key}")
@@ -38,11 +39,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--ref_data_dir', type=str,
                         default="data/test", help='Location for the dataset')
+    parser.add_argument('-md', '--model', type=str,
+                        default='models/conditional_pixelcnn.pth', help='Model to load')
+    parser.add_argument('-sp', '--samples_path', type=str,
+                        default='samples', help='Model to load')
     
     args = parser.parse_args()
     
     ref_data_dir = args.ref_data_dir
-    gen_data_dir = os.path.join(os.path.dirname(__file__), "samples")
+    # TODO: Changed from original
+    gen_data_dir = os.path.join(os.path.dirname(__file__), args.samples_path)
     BATCH_SIZE=128
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
@@ -51,16 +57,16 @@ if __name__ == "__main__":
 
     #TODO: Begin of your code
     #Load your model and generate images in the gen_data_dir, feel free to modify the model
-    model = PixelCNN(nr_resnet=1, nr_filters=40, nr_logistic_mix=5, input_channels=3)
+    model = PixelCNN(nr_resnet=5, nr_filters=160, nr_logistic_mix=10, input_channels=3)
     model = model.to(device)
 
     # Load pretrained model
     # Note: this code is copied from classification_evaluation.py
-    model_path = os.path.join(os.path.dirname(__file__), 'models/conditional_pixelcnn.pth')
+    model_path = os.path.join(os.path.dirname(__file__), args.model)
     if os.path.exists(model_path):
         # TODO: Changed from original to fit with MAC
-        model.load_state_dict(torch.load(model_path))
-        # model.load_state_dict(torch.load(model_path, map_location=device))
+        # model.load_state_dict(torch.load(model_path))
+        model.load_state_dict(torch.load(model_path, map_location=device))
         print('model parameters loaded')
     else:
         raise FileNotFoundError(f"Model file not found at {model_path}")
@@ -81,3 +87,11 @@ if __name__ == "__main__":
         print("Dimension {:d} fails!".format(192))
         
     print("Average fid score: {}".format(fid_score))
+
+    # TODO: Save the accuracy to a csv file
+    with open('fid.csv', mode='a', newline='') as file:
+        writer = csv.writer(file)
+        # Only write headers if file is empty
+        if file.tell() == 0:
+            writer.writerow(['Model', 'fib_score'])
+        writer.writerow([args.model, fid_score])
